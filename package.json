@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@aws-sdk/client-cognito-identity-provider": "^3.1096.0",
+    "aws-jwt-verify": "^5.2.1",
+    "mysql2": "^3.23.2",
     "next": "16.2.12",
     "react": "19.2.4",
     "react-dom": "19.2.4",

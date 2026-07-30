@@ -1,28 +1,44 @@
 import { z } from 'zod';
 
 const envSchema = z.object({
-  AWS_REGION: z.string().min(1),
-  COGNITO_USER_POOL_ID: z.string().min(1),
-  COGNITO_CLIENT_ID: z.string().min(1),
-  COGNITO_CLIENT_SECRET: z.string().min(1),
-  NEXT_PUBLIC_APP_URL: z.string().url(),
+  AWS_REGION: z.string().trim().min(1),
+
+  COGNITO_USER_POOL_ID: z.string().trim().min(1),
+  COGNITO_CLIENT_ID: z.string().trim().min(1),
+  COGNITO_CLIENT_SECRET: z.string().trim().min(1),
+
+  DB_HOST: z.string().trim().min(1),
+  DB_PORT: z.coerce.number().int().positive().default(3306),
+  DB_NAME: z.string().trim().min(1),
+  DB_USER: z.string().trim().min(1),
+  DB_PASSWORD: z.string(),
+
+  NEXT_PUBLIC_APP_URL: z.string().trim().url(),
 });
 
-const parsedEnv = envSchema.safeParse({
+const result = envSchema.safeParse({
   AWS_REGION: process.env.AWS_REGION,
+
   COGNITO_USER_POOL_ID: process.env.COGNITO_USER_POOL_ID,
   COGNITO_CLIENT_ID: process.env.COGNITO_CLIENT_ID,
   COGNITO_CLIENT_SECRET: process.env.COGNITO_CLIENT_SECRET,
+
+  DB_HOST: process.env.DB_HOST,
+  DB_PORT: process.env.DB_PORT,
+  DB_NAME: process.env.DB_NAME,
+  DB_USER: process.env.DB_USER,
+  DB_PASSWORD: process.env.DB_PASSWORD,
+
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
 });
 
-if (!parsedEnv.success) {
+if (!result.success) {
   console.error(
     'Invalid environment variables:',
-    parsedEnv.error.flatten().fieldErrors,
+    result.error.flatten().fieldErrors,
   );
 
   throw new Error('Invalid environment variables');
 }
 
-export const env = parsedEnv.data;
+export const env = result.data;
