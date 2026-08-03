@@ -9,13 +9,17 @@ import { z } from 'zod';
 
 import { cognitoClient } from '@/lib/auth/cognito';
 import {
-  accessTokenCookie,
   challengeCookie,
-  idTokenCookie,
-  refreshTokenCookie,
+  AUTH_COOKIE_NAMES,
 } from '@/lib/auth/cookies';
 import { generateSecretHash } from '@/lib/auth/secret-hash';
 import { env } from '@/lib/env';
+import {
+  setAuthenticationCookies,
+} from '@/lib/auth/session-cookies';
+import {
+  readAccessTokenPayload,
+} from '@/lib/auth/token-payload';
 
 const loginSchema = z.object({
   email: z.string().trim().email(),
@@ -67,13 +71,13 @@ export async function POST(request: Request) {
         email;
 
       cookieStore.set(
-        'cognito_challenge_session',
+        AUTH_COOKIE_NAMES.challengeSession,
         result.Session,
         challengeCookie,
       );
 
       cookieStore.set(
-        'cognito_challenge_username',
+        AUTH_COOKIE_NAMES.challengeUsername,
         username,
         challengeCookie,
       );
@@ -85,34 +89,32 @@ export async function POST(request: Request) {
 
     const authentication = result.AuthenticationResult;
 
-    if (
-      !authentication?.AccessToken ||
-      !authentication.IdToken ||
-      !authentication.RefreshToken
-    ) {
+    if (!authentication) {
       return NextResponse.json(
-        { message: 'Cognito no devolvió una sesión válida.' },
+        {
+          message: 'Cognito no devolvió una sesión válida.',
+        },
         { status: 500 },
       );
     }
 
-    cookieStore.set(
-      'access_token',
-      authentication.AccessToken,
-      accessTokenCookie,
-    );
+    if (!authentication.AccessToken) {
+      return NextResponse.json(
+        { message: 'No fue posible obtener el AccessToken de Cognito.' },
+        { status: 500 },
+      );
+    }
 
-    cookieStore.set(
-      'id_token',
-      authentication.IdToken,
-      idTokenCookie,
-    );
+    const tokenPayload = readAccessTokenPayload(authentication.AccessToken);
 
-    cookieStore.set(
-      'refresh_token',
-      authentication.RefreshToken,
-      refreshTokenCookie,
-    );
+    const cognitoUsername =
+      tokenPayload?.username ?? email;
+
+    setAuthenticationCookies({
+      cookieStore,
+      authentication,
+      username: cognitoUsername,
+    });
 
     return NextResponse.json({
       authenticated: true,

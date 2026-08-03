@@ -8,10 +8,12 @@ import { z } from 'zod';
 
 import { cognitoClient } from '@/lib/auth/cognito';
 import {
-  accessTokenCookie,
-  idTokenCookie,
-  refreshTokenCookie,
+  AUTH_COOKIE_NAMES,
 } from '@/lib/auth/cookies';
+
+import {
+  setAuthenticationCookies,
+} from '@/lib/auth/session-cookies';
 import { generateSecretHash } from '@/lib/auth/secret-hash';
 import { env } from '@/lib/env';
 
@@ -52,11 +54,11 @@ export async function POST(request: Request) {
     const cookieStore = await cookies();
 
     const session = cookieStore.get(
-      'cognito_challenge_session',
+      AUTH_COOKIE_NAMES.challengeSession,
     )?.value;
 
     const username = cookieStore.get(
-      'cognito_challenge_username',
+      AUTH_COOKIE_NAMES.challengeUsername,
     )?.value;
 
     if (!session || !username) {
@@ -83,37 +85,28 @@ export async function POST(request: Request) {
     const result = await cognitoClient.send(command);
     const authentication = result.AuthenticationResult;
 
-    if (
-      !authentication?.AccessToken ||
-      !authentication.IdToken ||
-      !authentication.RefreshToken
-    ) {
+    if (!authentication) {
       return NextResponse.json(
-        { message: 'No fue posible completar la activación.' },
+        {
+          message: 'No fue posible completar la activación.',
+        },
         { status: 500 },
       );
     }
 
-    cookieStore.set(
-      'access_token',
-      authentication.AccessToken,
-      accessTokenCookie,
+    setAuthenticationCookies({
+      cookieStore,
+      authentication,
+      username,
+    });
+
+    cookieStore.delete(
+      AUTH_COOKIE_NAMES.challengeSession,
     );
 
-    cookieStore.set(
-      'id_token',
-      authentication.IdToken,
-      idTokenCookie,
+    cookieStore.delete(
+      AUTH_COOKIE_NAMES.challengeUsername,
     );
-
-    cookieStore.set(
-      'refresh_token',
-      authentication.RefreshToken,
-      refreshTokenCookie,
-    );
-
-    cookieStore.delete('cognito_challenge_session');
-    cookieStore.delete('cognito_challenge_username');
 
     return NextResponse.json({
       authenticated: true,

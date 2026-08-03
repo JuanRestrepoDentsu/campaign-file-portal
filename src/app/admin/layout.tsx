@@ -1,14 +1,16 @@
 import { PrivateHeader } from '@/components/layout/private-header';
-import { requireAuthenticatedUser } from '@/lib/auth/authorization';
+import { requireRole } from '@/lib/auth/authorization';
 
-type PortalLayoutProps = Readonly<{
+type AdminLayoutProps = Readonly<{
   children: React.ReactNode;
 }>;
 
-export default async function PortalLayout({
+export default async function AdminLayout({
   children,
-}: PortalLayoutProps) {
-  const user = await requireAuthenticatedUser();
+}: AdminLayoutProps) {
+  const user = await requireRole([
+    'super_admin',
+  ]);
 
   const fullName = [
     user.firstName,
@@ -21,7 +23,7 @@ export default async function PortalLayout({
     <div className="min-h-screen bg-slate-50">
       <PrivateHeader
         userName={fullName}
-        isAdmin={user.role === 'super_admin'}
+        isAdmin
       />
 
       {children}
