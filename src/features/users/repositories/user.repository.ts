@@ -1,6 +1,6 @@
 import type { RowDataPacket } from 'mysql2';
 
-import { db } from '@/lib/database/mysql';
+import { db } from '@/shared/database/mysql';
 
 export type PortalUserRole =
   | 'super_admin'

@@ -8,18 +8,18 @@ import {
   NextResponse,
 } from 'next/server';
 
-import { cognitoClient } from '@/lib/auth/cognito';
+import { cognitoClient } from '@/shared/auth/cognito';
 import {
   AUTH_COOKIE_NAMES,
-} from '@/lib/auth/cookies';
+} from '@/shared/auth/cookies';
 import {
   generateSecretHash,
-} from '@/lib/auth/secret-hash';
+} from '@/shared/auth/secret-hash';
 import {
   clearAuthenticationCookies,
   setAuthenticationCookies,
-} from '@/lib/auth/session-cookies';
-import { env } from '@/lib/env';
+} from '@/shared/auth/session-cookies';
+import { env } from '@/shared/config/env';
 
 function getSafeReturnPath(
   request: NextRequest,

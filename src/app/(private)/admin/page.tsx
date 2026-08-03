@@ -1,6 +1,6 @@
 import {
   requireRole,
-} from '@/lib/auth/authorization';
+} from '@/shared/auth/authorization';
 
 export default async function AdminPage() {
   const user = await requireRole([

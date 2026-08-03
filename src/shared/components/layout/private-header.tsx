@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-import { LogoutButton } from '@/components/auth/logout-button';
+import { LogoutButton } from '@/shared/components/auth/logout-button';
 
 type PrivateHeaderProps = {
   userName: string;

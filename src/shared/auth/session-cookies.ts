@@ -10,7 +10,7 @@ import {
   idTokenCookie,
   refreshTokenCookie,
   usernameCookie,
-} from '@/lib/auth/cookies';
+} from '@/shared/auth/cookies';
 
 type CookieStore = Pick<ResponseCookies, 'set' | 'delete'>;
 

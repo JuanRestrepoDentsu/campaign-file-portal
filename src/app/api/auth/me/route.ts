@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 
-import { getAuthenticatedSession } from '@/lib/auth/get-session';
+import { getAuthenticatedSession } from '@/shared/auth/get-session';
 import {
   findUserByCognitoSub,
   updateUserLastLogin,
-} from '@/modules/users/user.repository';
+} from '@/features/users/repositories/user.repository';
 
 export async function GET() {
   try {

@@ -1,6 +1,6 @@
 import { createHmac } from 'node:crypto';
 
-import { env } from '@/lib/env';
+import { env } from '@/shared/config/env';
 
 export function generateSecretHash(username: string): string {
   return createHmac('sha256', env.COGNITO_CLIENT_SECRET)

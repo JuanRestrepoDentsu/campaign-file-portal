@@ -6,16 +6,16 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-import { cognitoClient } from '@/lib/auth/cognito';
+import { cognitoClient } from '@/shared/auth/cognito';
 import {
   AUTH_COOKIE_NAMES,
-} from '@/lib/auth/cookies';
+} from '@/shared/auth/cookies';
 
 import {
   setAuthenticationCookies,
-} from '@/lib/auth/session-cookies';
-import { generateSecretHash } from '@/lib/auth/secret-hash';
-import { env } from '@/lib/env';
+} from '@/shared/auth/session-cookies';
+import { generateSecretHash } from '@/shared/auth/secret-hash';
+import { env } from '@/shared/config/env';
 
 const passwordSchema = z
   .object({

@@ -1,6 +1,6 @@
 import { CognitoJwtVerifier } from 'aws-jwt-verify';
 
-import { env } from '@/lib/env';
+import { env } from '@/shared/config/env';
 
 export const accessTokenVerifier =
   CognitoJwtVerifier.create({

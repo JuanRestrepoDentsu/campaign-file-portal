@@ -2,12 +2,12 @@ import { redirect } from 'next/navigation';
 
 import {
   getAuthenticatedSession,
-} from '@/lib/auth/get-session';
+} from '@/shared/auth/get-session';
 import {
   findUserByCognitoSub,
   type AuthenticatedPortalUser,
   type PortalUserRole,
-} from '@/modules/users/user.repository';
+} from '@/features/users/repositories/user.repository';
 
 export async function requireAuthenticatedUser():
   Promise<AuthenticatedPortalUser> {

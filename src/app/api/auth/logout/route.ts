@@ -4,14 +4,14 @@ import {
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
-import { cognitoClient } from '@/lib/auth/cognito';
+import { cognitoClient } from '@/shared/auth/cognito';
 import {
   AUTH_COOKIE_NAMES,
-} from '@/lib/auth/cookies';
+} from '@/shared/auth/cookies';
 import {
   clearAuthenticationCookies,
-} from '@/lib/auth/session-cookies';
-import { env } from '@/lib/env';
+} from '@/shared/auth/session-cookies';
+import { env } from '@/shared/config/env';
 
 export async function POST() {
   const cookieStore = await cookies();

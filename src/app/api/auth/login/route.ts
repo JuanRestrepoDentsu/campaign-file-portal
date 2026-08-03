@@ -7,19 +7,19 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-import { cognitoClient } from '@/lib/auth/cognito';
+import { cognitoClient } from '@/shared/auth/cognito';
 import {
   challengeCookie,
   AUTH_COOKIE_NAMES,
-} from '@/lib/auth/cookies';
-import { generateSecretHash } from '@/lib/auth/secret-hash';
-import { env } from '@/lib/env';
+} from '@/shared/auth/cookies';
+import { generateSecretHash } from '@/shared/auth/secret-hash';
+import { env } from '@/shared/config/env';
 import {
   setAuthenticationCookies,
-} from '@/lib/auth/session-cookies';
+} from '@/shared/auth/session-cookies';
 import {
   readAccessTokenPayload,
-} from '@/lib/auth/token-payload';
+} from '@/shared/auth/token-payload';
 
 const loginSchema = z.object({
   email: z.string().trim().email(),

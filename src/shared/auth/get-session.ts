@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 
-import { accessTokenVerifier } from '@/lib/auth/jwt-verifier';
+import { accessTokenVerifier } from '@/shared/auth/jwt-verifier';
 
 export type AuthenticatedSession = {
   cognitoSub: string;

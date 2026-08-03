@@ -1,6 +1,6 @@
 import mysql from 'mysql2/promise';
 
-import { env } from '@/lib/env';
+import { env } from '@/shared/config/env';
 
 const globalForMySQL = globalThis as unknown as {
   mysqlPool: mysql.Pool | undefined;
