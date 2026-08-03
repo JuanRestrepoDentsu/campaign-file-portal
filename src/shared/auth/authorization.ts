@@ -8,8 +8,9 @@ import {
   type AuthenticatedPortalUser,
   type PortalUserRole,
 } from '@/features/users/repositories/user.repository';
+import { cache } from 'react';
 
-export async function requireAuthenticatedUser():
+async function getRequiredAuthenticatedUser():
   Promise<AuthenticatedPortalUser> {
   const session =
     await getAuthenticatedSession();
@@ -32,6 +33,10 @@ export async function requireAuthenticatedUser():
 
   return user;
 }
+
+export const requireAuthenticatedUser = cache(
+  getRequiredAuthenticatedUser,
+);
 
 export async function requireRole(
   allowedRoles: PortalUserRole[],
