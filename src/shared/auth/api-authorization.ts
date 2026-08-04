@@ -1,74 +1,41 @@
 import { NextResponse } from 'next/server';
 
-import {
-  getAuthenticatedSession,
-} from '@/shared/auth/get-session';
-import {
-  findUserByCognitoSub,
-  type AuthenticatedPortalUser,
-  type PortalUserRole,
+import type {
+  AuthenticatedPortalUser,
+  PortalUserRole,
 } from '@/features/users/repositories/user.repository';
+import { findUserByCognitoSub } from '@/features/users/repositories/user.repository';
+import { activateInvitedAuthenticatedUser } from '@/features/users/services/activate-invited-user';
+import { getAuthenticatedSession } from '@/shared/auth/get-session';
 
-type ApiAuthorizationResult =
-  | {
-      authorized: true;
-      user: AuthenticatedPortalUser;
-    }
-  | {
-      authorized: false;
-      response: NextResponse;
-    };
+type Result =
+  | { authorized: true; user: AuthenticatedPortalUser }
+  | { authorized: false; response: NextResponse };
 
 export async function authorizeApiRoles(
   allowedRoles: PortalUserRole[],
-): Promise<ApiAuthorizationResult> {
-  const session =
-    await getAuthenticatedSession();
-
+): Promise<Result> {
+  const session = await getAuthenticatedSession();
   if (!session) {
     return {
       authorized: false,
-      response: NextResponse.json(
-        {
-          message: 'La sesión no es válida.',
-        },
-        { status: 401 },
-      ),
+      response: NextResponse.json({ message: 'La sesión no es válida.' }, { status: 401 }),
     };
   }
 
-  const user = await findUserByCognitoSub(
-    session.cognitoSub,
-  );
-
-  if (!user || user.status !== 'active') {
+  const found = await findUserByCognitoSub(session.cognitoSub);
+  if (!found) {
     return {
       authorized: false,
-      response: NextResponse.json(
-        {
-          message:
-            'El usuario no está habilitado.',
-        },
-        { status: 403 },
-      ),
+      response: NextResponse.json({ message: 'El usuario no está registrado.' }, { status: 403 }),
     };
   }
-
-  if (!allowedRoles.includes(user.role)) {
+  const user = await activateInvitedAuthenticatedUser(found);
+  if (user.status !== 'active' || !allowedRoles.includes(user.role)) {
     return {
       authorized: false,
-      response: NextResponse.json(
-        {
-          message:
-            'No tienes permisos para esta operación.',
-        },
-        { status: 403 },
-      ),
+      response: NextResponse.json({ message: 'No tienes permisos para esta operación.' }, { status: 403 }),
     };
   }
-
-  return {
-    authorized: true,
-    user,
-  };
+  return { authorized: true, user };
 }
