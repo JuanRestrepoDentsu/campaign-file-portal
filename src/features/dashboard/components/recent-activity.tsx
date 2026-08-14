@@ -16,6 +16,9 @@ const ACTION_LABELS: Record<string, string> = {
   user_sessions_revoked: 'cerró las sesiones de un usuario',
   campaign_created: 'creó una campaña',
   campaign_updated: 'actualizó una campaña',
+  campaign_activated: 'activó una campaña',
+  campaign_deactivated: 'desactivó una campaña',
+  campaign_archived: 'archivó una campaña',
 };
 
 function label(action: string) {
