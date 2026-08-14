@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 const envSchema = z.object({
-  AWS_REGION: z.string().trim().min(1),
+  REGION: z.string().trim().min(1),
 
   COGNITO_USER_POOL_ID: z.string().trim().min(1),
   COGNITO_CLIENT_ID: z.string().trim().min(1),
@@ -17,7 +17,7 @@ const envSchema = z.object({
 });
 
 const result = envSchema.safeParse({
-  AWS_REGION: process.env.AWS_REGION,
+  REGION: process.env.REGION,
 
   COGNITO_USER_POOL_ID: process.env.COGNITO_USER_POOL_ID,
   COGNITO_CLIENT_ID: process.env.COGNITO_CLIENT_ID,
