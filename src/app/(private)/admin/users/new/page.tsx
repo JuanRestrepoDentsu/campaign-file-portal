@@ -1,13 +1,13 @@
 import Link from 'next/link';
 
 import { UserForm } from '@/features/users/components/user-form';
-import { getUsersFormOptions } from '@/features/users/services/get-users';
+import { getRemoteUserOptions } from '@/shared/api/portal-data';
 import { requireRole } from '@/shared/auth/authorization';
 
 export default async function NewUserPage() {
   const [, options] = await Promise.all([
     requireRole(['super_admin']),
-    getUsersFormOptions(),
+    getRemoteUserOptions(),
   ]);
   return (
     <main className="px-6 py-8 lg:px-8">

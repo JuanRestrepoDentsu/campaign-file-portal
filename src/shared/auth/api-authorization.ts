@@ -4,8 +4,7 @@ import type {
   AuthenticatedPortalUser,
   PortalUserRole,
 } from '@/features/users/repositories/user.repository';
-import { findUserByCognitoSub } from '@/features/users/repositories/user.repository';
-import { activateInvitedAuthenticatedUser } from '@/features/users/services/activate-invited-user';
+import { getRemoteCurrentUser } from '@/shared/api/portal-data';
 import { getAuthenticatedSession } from '@/shared/auth/get-session';
 
 type Result =
@@ -23,14 +22,15 @@ export async function authorizeApiRoles(
     };
   }
 
-  const found = await findUserByCognitoSub(session.cognitoSub);
-  if (!found) {
+  let user: AuthenticatedPortalUser;
+  try {
+    user = await getRemoteCurrentUser();
+  } catch {
     return {
       authorized: false,
       response: NextResponse.json({ message: 'El usuario no está registrado.' }, { status: 403 }),
     };
   }
-  const user = await activateInvitedAuthenticatedUser(found);
   if (user.status !== 'active' || !allowedRoles.includes(user.role)) {
     return {
       authorized: false,

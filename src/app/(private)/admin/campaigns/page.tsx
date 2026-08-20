@@ -2,10 +2,7 @@ import Link from 'next/link';
 
 import { CampaignTable } from '@/features/campaigns/components/campaign-table';
 import { campaignListQuerySchema } from '@/features/campaigns/schemas/campaign.schema';
-import {
-  getCampaignFormOptions,
-  getCampaigns,
-} from '@/features/campaigns/services/get-campaigns';
+import { getRemoteCampaignOptions, getRemoteCampaigns } from '@/shared/api/portal-data';
 import type { CampaignListFilters } from '@/features/campaigns/types/campaign';
 import { requireRole } from '@/shared/auth/authorization';
 
@@ -47,8 +44,8 @@ export default async function CampaignsPage({ searchParams }: Props) {
   };
   const [, result, options] = await Promise.all([
     requireRole(['super_admin']),
-    getCampaigns(filters),
-    getCampaignFormOptions(),
+    getRemoteCampaigns(filters),
+    getRemoteCampaignOptions(),
   ]);
   const notice = NOTICES[first(params.notice) ?? ''];
 

@@ -1,6 +1,6 @@
 import mysql from 'mysql2/promise';
 
-import { env } from '@/shared/config/env';
+import { databaseEnv } from '@/shared/config/database-env';
 
 const globalForMySQL = globalThis as unknown as {
   mysqlPool: mysql.Pool | undefined;
@@ -8,11 +8,11 @@ const globalForMySQL = globalThis as unknown as {
 
 function createPool(): mysql.Pool {
   return mysql.createPool({
-    host: env.DB_HOST,
-    port: env.DB_PORT,
-    database: env.DB_NAME,
-    user: env.DB_USER,
-    password: env.DB_PASSWORD,
+    host: databaseEnv.DB_HOST,
+    port: databaseEnv.DB_PORT,
+    database: databaseEnv.DB_NAME,
+    user: databaseEnv.DB_USER,
+    password: databaseEnv.DB_PASSWORD,
 
     waitForConnections: true,
     connectionLimit: 10,

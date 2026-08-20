@@ -1,2 +1,3 @@
-import {NextResponse} from 'next/server';import {authorizeApiRoles} from '@/shared/auth/api-authorization';import {initiateUploadSchema} from '@/features/uploads/schemas/upload.schema';import {initiateLargeUpload} from '@/features/uploads/services/large-upload';import {uploadErrorResponse} from '@/features/uploads/http/upload-response';export const runtime='nodejs';
-export async function POST(request:Request){const auth=await authorizeApiRoles(['super_admin','client_admin','client_user']);if(!auth.authorized)return auth.response;try{return NextResponse.json(await initiateLargeUpload(auth.user,initiateUploadSchema.parse(await request.json())),{status:201})}catch(e){return uploadErrorResponse(e)??NextResponse.json({message:'No fue posible iniciar la carga.'},{status:500})}}
+import { proxyPortalApi } from '@/shared/api/portal-api-client';
+export const runtime = 'nodejs';
+export function POST(request: Request) { return proxyPortalApi(request, '/uploads/initiate'); }

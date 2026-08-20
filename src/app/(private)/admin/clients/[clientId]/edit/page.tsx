@@ -9,9 +9,7 @@ import {
 import {
   clientIdSchema,
 } from '@/features/clients/schemas/client.schema';
-import {
-  getClient,
-} from '@/features/clients/services/get-clients';
+import { getRemoteClient } from '@/shared/api/portal-data';
 import {
   requireRole,
 } from '@/shared/auth/authorization';
@@ -41,7 +39,7 @@ export default async function EditClientPage({
   }
 
   const client =
-    await getClient(
+    await getRemoteClient(
       idValidation.data,
     );
 

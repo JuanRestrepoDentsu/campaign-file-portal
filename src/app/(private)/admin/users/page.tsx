@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 import { UserTable } from '@/features/users/components/user-table';
 import { userListQuerySchema } from '@/features/users/schemas/user.schema';
-import { getUsers, getUsersFormOptions } from '@/features/users/services/get-users';
+import { getRemoteUserOptions, getRemoteUsers } from '@/shared/api/portal-data';
 import type { UserListFilters } from '@/features/users/types/user';
 import { requireRole } from '@/shared/auth/authorization';
 
@@ -54,8 +54,8 @@ export default async function UsersPage({ searchParams }: Props) {
 
   const [currentUser, result, formOptions] = await Promise.all([
     requireRole(['super_admin']),
-    getUsers(filters),
-    getUsersFormOptions(),
+    getRemoteUsers(filters),
+    getRemoteUserOptions(),
   ]);
   const notice = NOTICES[first(params.notice) ?? ''];
 

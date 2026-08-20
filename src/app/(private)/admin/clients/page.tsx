@@ -6,9 +6,7 @@ import {
 import {
   clientListQuerySchema,
 } from '@/features/clients/schemas/client.schema';
-import {
-  getClients,
-} from '@/features/clients/services/get-clients';
+import { getRemoteClients } from '@/shared/api/portal-data';
 import type {
   ClientListFilters,
 } from '@/features/clients/types/client';
@@ -119,7 +117,7 @@ export default async function ClientsPage({
       requireRole([
         'super_admin',
       ]),
-      getClients(filters),
+      getRemoteClients(filters),
     ]);
 
   const notice =

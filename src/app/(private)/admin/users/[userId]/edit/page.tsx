@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 
 import { UserForm } from '@/features/users/components/user-form';
 import { userIdSchema } from '@/features/users/schemas/user.schema';
-import { getUser, getUsersFormOptions } from '@/features/users/services/get-users';
+import { getRemoteUser, getRemoteUserOptions } from '@/shared/api/portal-data';
 import { requireRole } from '@/shared/auth/authorization';
 
 type Props = { params: Promise<{ userId: string }> };
@@ -13,8 +13,8 @@ export default async function EditUserPage({ params }: Props) {
   const id = userIdSchema.safeParse((await params).userId);
   if (!id.success) notFound();
   const [user, options] = await Promise.all([
-    getUser(id.data),
-    getUsersFormOptions(),
+    getRemoteUser(id.data),
+    getRemoteUserOptions(),
   ]);
   if (!user) notFound();
 

@@ -1,2 +1,4 @@
-import {NextResponse} from 'next/server';import {authorizeApiRoles} from '@/shared/auth/api-authorization';import {uploadIdSchema} from '@/features/uploads/schemas/upload.schema';import {queueProcessing} from '@/features/uploads/services/large-upload';import {uploadErrorResponse} from '@/features/uploads/http/upload-response';export const runtime='nodejs';
-export async function POST(_request:Request,{params}:{params:Promise<{uploadId:string}>}){const auth=await authorizeApiRoles(['super_admin','client_admin','client_user']);if(!auth.authorized)return auth.response;try{return NextResponse.json(await queueProcessing(auth.user,uploadIdSchema.parse((await params).uploadId)),{status:202})}catch(e){return uploadErrorResponse(e)??NextResponse.json({message:'No fue posible programar el procesamiento.'},{status:500})}}
+import { proxyPortalApi } from '@/shared/api/portal-api-client';
+export const runtime = 'nodejs';
+type Context = { params: Promise<{ uploadId: string }> };
+export async function POST(request: Request, context: Context) { return proxyPortalApi(request, `/uploads/${(await context.params).uploadId}/confirm`); }

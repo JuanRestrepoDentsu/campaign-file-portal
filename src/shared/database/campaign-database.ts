@@ -1,5 +1,5 @@
 import mysql from 'mysql2/promise';
-import { env } from '@/shared/config/env';
+import { databaseEnv } from '@/shared/config/database-env';
 
 const pools = new Map<string, mysql.Pool>();
 
@@ -16,8 +16,8 @@ export function getCampaignDatabase(code: string): mysql.Pool {
   const existing = pools.get(database);
   if (existing) return existing;
   const pool = mysql.createPool({
-    host: env.DB_HOST, port: env.DB_PORT, user: env.DB_USER,
-    password: env.DB_PASSWORD, database, waitForConnections: true,
+    host: databaseEnv.DB_HOST, port: databaseEnv.DB_PORT, user: databaseEnv.DB_USER,
+    password: databaseEnv.DB_PASSWORD, database, waitForConnections: true,
     connectionLimit: 5, queueLimit: 0, charset: 'utf8mb4', timezone: 'Z',
     enableKeepAlive: true,
   });

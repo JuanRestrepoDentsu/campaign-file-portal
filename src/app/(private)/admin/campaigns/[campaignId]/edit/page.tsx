@@ -3,10 +3,7 @@ import { notFound } from 'next/navigation';
 
 import { CampaignForm } from '@/features/campaigns/components/campaign-form';
 import { campaignIdSchema } from '@/features/campaigns/schemas/campaign.schema';
-import {
-  getCampaign,
-  getCampaignFormOptions,
-} from '@/features/campaigns/services/get-campaigns';
+import { getRemoteCampaign, getRemoteCampaignOptions } from '@/shared/api/portal-data';
 import { requireRole } from '@/shared/auth/authorization';
 
 type Props = { params: Promise<{ campaignId: string }> };
@@ -16,8 +13,8 @@ export default async function EditCampaignPage({ params }: Props) {
   const id = campaignIdSchema.safeParse((await params).campaignId);
   if (!id.success) notFound();
   const [campaign, baseOptions] = await Promise.all([
-    getCampaign(id.data),
-    getCampaignFormOptions(),
+    getRemoteCampaign(id.data),
+    getRemoteCampaignOptions(),
   ]);
   if (!campaign) notFound();
   const options = {

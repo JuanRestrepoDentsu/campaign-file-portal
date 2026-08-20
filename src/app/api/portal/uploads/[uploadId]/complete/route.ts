@@ -1,2 +1,4 @@
-import {NextResponse} from 'next/server';import {authorizeApiRoles} from '@/shared/auth/api-authorization';import {completeMultipartSchema,uploadIdSchema} from '@/features/uploads/schemas/upload.schema';import {completeLargeUpload} from '@/features/uploads/services/large-upload';import {uploadErrorResponse} from '@/features/uploads/http/upload-response';export const runtime='nodejs';
-export async function POST(request:Request,{params}:{params:Promise<{uploadId:string}>}){const auth=await authorizeApiRoles(['super_admin','client_admin','client_user']);if(!auth.authorized)return auth.response;try{const id=uploadIdSchema.parse((await params).uploadId);const body=completeMultipartSchema.parse(await request.json());return NextResponse.json(await completeLargeUpload(auth.user,id,body.parts),{status:202})}catch(e){return uploadErrorResponse(e)??NextResponse.json({message:'No fue posible cerrar la carga.'},{status:500})}}
+import { proxyPortalApi } from '@/shared/api/portal-api-client';
+export const runtime = 'nodejs';
+type Context = { params: Promise<{ uploadId: string }> };
+export async function POST(request: Request, context: Context) { return proxyPortalApi(request, `/uploads/${(await context.params).uploadId}/complete`); }

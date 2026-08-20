@@ -1,13 +1,13 @@
 import Link from 'next/link';
 
 import { CampaignForm } from '@/features/campaigns/components/campaign-form';
-import { getCampaignFormOptions } from '@/features/campaigns/services/get-campaigns';
+import { getRemoteCampaignOptions } from '@/shared/api/portal-data';
 import { requireRole } from '@/shared/auth/authorization';
 
 export default async function NewCampaignPage() {
   const [, options] = await Promise.all([
     requireRole(['super_admin']),
-    getCampaignFormOptions(),
+    getRemoteCampaignOptions(),
   ]);
   return (
     <main className="px-6 py-8 lg:px-8">
