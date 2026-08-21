@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { AbortMultipartUploadCommand, CompleteMultipartUploadCommand, CreateMultipartUploadCommand, DeleteObjectCommand, HeadObjectCommand, S3Client, UploadPartCommand } from '@aws-sdk/client-s3';
+import { AbortMultipartUploadCommand, CompleteMultipartUploadCommand, CreateMultipartUploadCommand, DeleteObjectCommand, ListPartsCommand, S3Client, UploadPartCommand } from '@aws-sdk/client-s3';
 import { BatchClient, SubmitJobCommand } from '@aws-sdk/client-batch';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import type { AuthenticatedPortalUser } from '@/features/users/repositories/user.repository';
@@ -113,51 +113,98 @@ export async function completeLargeUpload(
             }
         }
 
+        operation = 'list-parts';
+
+        const listedPartsResult = await s3.send(
+        new ListPartsCommand({
+            Bucket: bucket(),
+            Key: upload.s3_object_key,
+            UploadId: upload.s3_multipart_upload_id,
+            MaxParts: 1000,
+        }),
+        );
+
+        if (listedPartsResult.IsTruncated) {
+        throw new Error(
+            'La carga contiene más partes de las permitidas por el portal.',
+        );
+        }
+
+        const listedParts = listedPartsResult.Parts ?? [];
+
+        if (listedParts.length !== orderedParts.length) {
+        throw new Error(
+            `La cantidad de partes no coincide: esperadas=${orderedParts.length}, recibidas=${listedParts.length}`,
+        );
+        }
+
+        const normalizeETag = (value: string | undefined): string =>
+        (value ?? '').replace(/^"|"$/g, '');
+
+        for (const requestedPart of orderedParts) {
+        const uploadedPart = listedParts.find(
+            (part) => part.PartNumber === requestedPart.partNumber,
+        );
+
+        if (!uploadedPart) {
+            throw new Error(
+            `No se encontró la parte ${requestedPart.partNumber} en S3.`,
+            );
+        }
+
+        if (
+            normalizeETag(uploadedPart.ETag) !==
+            normalizeETag(requestedPart.eTag)
+        ) {
+            throw new Error(
+            `El ETag de la parte ${requestedPart.partNumber} no coincide.`,
+            );
+        }
+        }
+
+        const receivedBytes = listedParts.reduce(
+        (total, part) => total + Number(part.Size ?? 0),
+        0,
+        );
+
+        const expectedBytes = Number(upload.file_size_bytes);
+
+        console.info('Multipart parts verified', {
+        uploadId: id,
+        expectedParts: orderedParts.length,
+        receivedParts: listedParts.length,
+        expectedBytes,
+        receivedBytes,
+        });
+
+        if (receivedBytes !== expectedBytes) {
+        throw new Error(
+            `El tamaño recibido no coincide: esperado=${expectedBytes}, recibido=${receivedBytes}`,
+        );
+        }
+
         operation = 'complete-multipart';
 
         const completeResult = await s3.send(
-            new CompleteMultipartUploadCommand({
-                Bucket: bucket(),
-                Key: upload.s3_object_key,
-                UploadId: upload.s3_multipart_upload_id,
-                MultipartUpload: {
-                    Parts: orderedParts.map((part) => ({
-                        PartNumber: part.partNumber,
-                        ETag: part.eTag,
-                    })),
-                },
-            }),
+        new CompleteMultipartUploadCommand({
+            Bucket: bucket(),
+            Key: upload.s3_object_key,
+            UploadId: upload.s3_multipart_upload_id,
+            MultipartUpload: {
+            Parts: orderedParts.map((part) => ({
+                PartNumber: part.partNumber,
+                ETag: part.eTag,
+            })),
+            },
+        }),
         );
 
         console.info('Multipart upload completed', {
-            uploadId: id,
-            parts: orderedParts.length,
-            hasETag: Boolean(completeResult.ETag),
+        uploadId: id,
+        parts: orderedParts.length,
+        receivedBytes,
+        hasETag: Boolean(completeResult.ETag),
         });
-
-        operation = 'head-object';
-
-        const headResult = await s3.send(
-            new HeadObjectCommand({
-                Bucket: bucket(),
-                Key: upload.s3_object_key,
-            }),
-        );
-
-        console.info('Uploaded object verified', {
-            uploadId: id,
-            expectedBytes: Number(upload.file_size_bytes),
-            receivedBytes: Number(headResult.ContentLength),
-        });
-
-        if (
-            Number(headResult.ContentLength) !==
-            Number(upload.file_size_bytes)
-        ) {
-            throw new Error(
-                `El tamaño recibido no coincide: esperado=${upload.file_size_bytes}, recibido=${headResult.ContentLength}`,
-            );
-        }
 
         operation = 'submit-validation-job';
 
