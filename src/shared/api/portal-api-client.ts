@@ -1,6 +1,9 @@
 import 'server-only';
 
-import { cookies } from 'next/headers';
+import {
+  cookies,
+  headers as requestHeaders,
+} from 'next/headers';
 
 import { AUTH_COOKIE_NAMES } from '@/shared/auth/cookies';
 
@@ -42,25 +45,48 @@ export async function portalApi<T>(
   path: string,
   init: { method?: string; body?: unknown } = {},
 ): Promise<T> {
+  const incomingHeaders = await requestHeaders();
+
+  const userAgent =
+    incomingHeaders.get('user-agent') ??
+    'campaign-file-portal';
+
   const response = await fetch(apiUrl(path), {
     method: init.method ?? 'GET',
     headers: {
       Authorization: `Bearer ${await accessToken()}`,
-      ...(init.body === undefined ? {} : { 'Content-Type': 'application/json' }),
+      Accept: 'application/json',
+      'User-Agent': userAgent,
+      ...(init.body === undefined
+        ? {}
+        : {
+            'Content-Type': 'application/json',
+          }),
     },
-    body: init.body === undefined ? undefined : JSON.stringify(init.body),
+    body:
+      init.body === undefined
+        ? undefined
+        : JSON.stringify(init.body),
     cache: 'no-store',
   });
+
   const payload = await parseResponse(response);
+
   if (!response.ok) {
-    const error = payload as { code?: string; message?: string } | null;
+    const error = payload as {
+      code?: string;
+      message?: string;
+    } | null;
+
     throw new PortalApiError(
       response.status,
       error?.code ?? 'PORTAL_API_ERROR',
-      error?.message ?? 'No fue posible comunicarse con la API privada.',
+      error?.message ??
+        'No fue posible comunicarse con la API privada.',
       payload,
     );
   }
+
   return payload as T;
 }
 

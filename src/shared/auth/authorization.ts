@@ -21,14 +21,28 @@ async function getRequiredAuthenticatedUser(): Promise<AuthenticatedPortalUser> 
       error,
     );
 
-    if (
-      error instanceof PortalApiError &&
-      error.status === 401
-    ) {
-      redirect('/login?error=session_expired');
+    if (error instanceof PortalApiError) {
+      if (error.status === 401) {
+        redirect('/login?error=session_expired');
+      }
+
+      if (
+        error.status === 403 &&
+        [
+          'USER_NOT_REGISTERED',
+          'USER_DISABLED',
+          'FORBIDDEN',
+        ].includes(error.code)
+      ) {
+        redirect('/login?error=account_unavailable');
+      }
     }
 
-    redirect('/login?error=account_unavailable');
+    /*
+    * Un 403 genérico de API Gateway/WAF no significa
+    * necesariamente que la cuenta esté deshabilitada.
+    */
+    redirect('/login?error=service_unavailable');
   }
 }
 
