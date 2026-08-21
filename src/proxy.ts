@@ -13,25 +13,25 @@ const AUTH_PATHS = [
   '/complete-password',
 ];
 
-const SESSION_COOKIE_NAMES = [
-  'access_token',
-  'id_token',
-  'refresh_token',
-  'cognito_username',
-  'cognito_challenge_session',
-  'cognito_challenge_username',
-];
+// const SESSION_COOKIE_NAMES = [
+//   'access_token',
+//   'id_token',
+//   'refresh_token',
+//   'cognito_username',
+//   'cognito_challenge_session',
+//   'cognito_challenge_username',
+// ];
 
-function clearSessionCookies(response: NextResponse): void {
-  SESSION_COOKIE_NAMES.forEach((name) => {
-    response.cookies.set({
-      name,
-      value: '',
-      expires: new Date(0),
-      path: '/',
-    });
-  });
-}
+// function clearSessionCookies(response: NextResponse): void {
+//   SESSION_COOKIE_NAMES.forEach((name) => {
+//     response.cookies.set({
+//       name,
+//       value: '',
+//       expires: new Date(0),
+//       path: '/',
+//     });
+//   });
+// }
 
 function isPrivatePath(pathname: string): boolean {
   return PRIVATE_PATHS.some(
@@ -170,11 +170,7 @@ export function proxy(request: NextRequest) {
     * /portal -> /login?error=... -> /portal
     */
     if (authenticationError) {
-      const response = NextResponse.next();
-
-      clearSessionCookies(response);
-
-      return response;
+      return NextResponse.next();
     }
 
     if (accessToken) {
