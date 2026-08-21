@@ -228,11 +228,27 @@ function errorResponse(error: unknown): LambdaResponse {
   if (error instanceof SyntaxError) {
     return json(400, { code: 'INVALID_JSON', message: 'El cuerpo no es JSON válido.' });
   }
-  console.error('Portal API error:', error instanceof Error ? {
-    name: error.name,
-    message: error.message,
-    stack: error.stack,
-  } : error);
+  const unexpectedError = error as Error & {
+    Code?: string;
+    code?: string;
+    $metadata?: {
+      httpStatusCode?: number;
+      requestId?: string;
+      extendedRequestId?: string;
+      attempts?: number;
+    };
+  };
+
+  console.error('Portal API error:', {
+    name: unexpectedError?.name,
+    message: unexpectedError?.message,
+    code: unexpectedError?.Code ?? unexpectedError?.code,
+    httpStatusCode: unexpectedError?.$metadata?.httpStatusCode,
+    requestId: unexpectedError?.$metadata?.requestId,
+    extendedRequestId: unexpectedError?.$metadata?.extendedRequestId,
+    attempts: unexpectedError?.$metadata?.attempts,
+    stack: unexpectedError?.stack,
+  });
   return json(500, { code: 'INTERNAL_ERROR', message: 'No fue posible completar la operación.' });
 }
 
