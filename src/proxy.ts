@@ -13,6 +13,26 @@ const AUTH_PATHS = [
   '/complete-password',
 ];
 
+const SESSION_COOKIE_NAMES = [
+  'access_token',
+  'id_token',
+  'refresh_token',
+  'cognito_username',
+  'cognito_challenge_session',
+  'cognito_challenge_username',
+];
+
+function clearSessionCookies(response: NextResponse): void {
+  SESSION_COOKIE_NAMES.forEach((name) => {
+    response.cookies.set({
+      name,
+      value: '',
+      expires: new Date(0),
+      path: '/',
+    });
+  });
+}
+
 function isPrivatePath(pathname: string): boolean {
   return PRIVATE_PATHS.some(
     (path) =>
@@ -138,10 +158,30 @@ export function proxy(request: NextRequest) {
    * Si ya existe un access token, evitamos volver
    * al login. La validación completa ocurre después.
    */
-  if (isAuthPath(pathname) && accessToken) {
-    return NextResponse.redirect(
-      new URL('/portal', request.url),
-    );
+  if (isAuthPath(pathname)) {
+    const authenticationError =
+      request.nextUrl.searchParams.get('error');
+
+    /*
+    * Si /portal detectó que la cuenta o la API no están
+    * disponibles, permitimos mostrar el login y eliminamos
+    * la sesión local. Esto evita el ciclo:
+    *
+    * /portal -> /login?error=... -> /portal
+    */
+    if (authenticationError) {
+      const response = NextResponse.next();
+
+      clearSessionCookies(response);
+
+      return response;
+    }
+
+    if (accessToken) {
+      return NextResponse.redirect(
+        new URL('/portal', request.url),
+      );
+    }
   }
 
   return NextResponse.next();

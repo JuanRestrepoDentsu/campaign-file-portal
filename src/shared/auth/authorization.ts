@@ -1,5 +1,6 @@
 import { cache } from 'react';
 import { redirect } from 'next/navigation';
+import { PortalApiError } from '@/shared/api/portal-api-client';
 
 import type {
   AuthenticatedPortalUser,
@@ -14,7 +15,19 @@ async function getRequiredAuthenticatedUser(): Promise<AuthenticatedPortalUser> 
 
   try {
     return await getRemoteCurrentUser();
-  } catch {
+  } catch (error) {
+    console.error(
+      'Remote current user validation failed:',
+      error,
+    );
+
+    if (
+      error instanceof PortalApiError &&
+      error.status === 401
+    ) {
+      redirect('/login?error=session_expired');
+    }
+
     redirect('/login?error=account_unavailable');
   }
 }
